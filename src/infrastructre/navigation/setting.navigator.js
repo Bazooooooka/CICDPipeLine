@@ -15,11 +15,27 @@ export const SettingNavigator = ({ route, navigation }) => {
       headerMode="none"
       screenOptions={{ ...TransitionPresets.ModalPresentationIOS }}
     >
-      <settingStack.Screen name="Settingss" component={SettingsScreen} />
-      <settingStack.Screen name="Favourites" component={FavouritesScreen} />
-      <settingStack.Screen name="FetchData" component={FetchDataScreen} />
+      <settingStack.Screen
+        name="Settingss"
+        component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <settingStack.Screen
+        name="Favourites"
+        component={FavouritesScreen}
+        options={{ headerShown: false }}
+      />
+      <settingStack.Screen
+        name="FetchData"
+        component={FetchDataScreen}
+        options={{ headerShown: false }}
+      />
 
-      <settingStack.Screen name="Camera" component={CameraScreen} />
+      <settingStack.Screen
+        name="Camera"
+        component={CameraScreen}
+        options={{ headerShown: false }}
+      />
     </settingStack.Navigator>
   );
 };

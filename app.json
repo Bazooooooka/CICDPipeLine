@@ -35,7 +35,8 @@
           "recordAudioAndroid": true
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "./withNotifeeAndroidFix.js"
     ],
     "extra": {
       "eas": {

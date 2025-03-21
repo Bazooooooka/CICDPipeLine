@@ -17,10 +17,12 @@ export const RestaurantNavigator = () => {
       <restaurantStack.Screen
         name="Restaurants"
         component={RestaurantsScereen}
+        options={{ headerShown: false }}
       />
       <restaurantStack.Screen
         name="RestaurantDetail"
         component={RestaurantDetailScreen}
+        options={{ headerShown: false }}
       />
     </restaurantStack.Navigator>
   );
