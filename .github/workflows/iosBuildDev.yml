@@ -1,4 +1,4 @@
-name: Build iOS with Code Signing
+name: iOS Dev Build
 
 on:
   push:
@@ -6,43 +6,49 @@ on:
       - master
 
 jobs:
-  build-ios:
+  build:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install Dependencies
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "17" # or the version you are using
+
+      - name: Install dependencies
         run: |
+          npm install
           cd ios
           pod install
 
-      - name: Set Up Code Signing
+      - name: Decode and install signing certificate
         run: |
-          # Decode and install the certificate
           echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > certificate.p12
           security create-keychain -p "" build.keychain
           security import certificate.p12 -k build.keychain -P "" -T /usr/bin/codesign
           security list-keychains -s build.keychain
           security set-keychain-settings -lut 7200 build.keychain
 
-          # Decode and install the provisioning profile
+      - name: Decode and install provisioning profile
+        run: |
           echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 --decode > profile.mobileprovision
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mv profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
 
-      - name: Clean Build Folder
+      - name: Build the app for iOS
         run: |
           cd ios
-          xcodebuild clean -workspace ManojDemoapp.xcworkspace -scheme ManojDemoappScheme -configuration Debug
+          xcodebuild clean build \
+            -workspace ManojDemoap.xcworkspace \
+            -scheme ManojDemoapScheme \  # Make sure your scheme matches this
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.5'
 
-      - name: Build iOS Debug
-        run: |
-          cd ios
-          xcodebuild build -workspace ManojDemoapp.xcworkspace -scheme ManojDemoappScheme -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.5'
-
-      - name: Upload iOS Artifact
+      - name: Upload the build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-debug-app
-          path: ios/build/ManojDemoapp.app
+          path: ios/build/ManojDemoap.app # Update this path to reflect where your .app is generated
