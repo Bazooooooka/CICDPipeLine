@@ -1,5 +1,4 @@
 name: devBuildAndroidWorkFLow-apk
-
 on:
   push:
     branches:
@@ -19,12 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install npm dependencies
+        run: |
+          npm install
       - name: Build Android Debug
         run: |
-          chmod +x android/gradlew
-          cd android
-          ./gradlew assembleDebug
-      - name: List contents of release folder
+          chmod +x android/gradlew && cd android && ./gradlew assembleDebug
+      - name: List contents of release folder # Verifying APK file exists
         run: |
           ls -la android/app/build/outputs/apk/debug/
       - name: Upload Artifact
