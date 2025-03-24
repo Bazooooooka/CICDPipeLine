@@ -42,8 +42,8 @@ jobs:
         run: |
           cd ios
           xcodebuild clean build \
-            -workspace ManojDemoap.xcworkspace \
-            -scheme ManojDemoapScheme \
+            -workspace ManojDemoapp.xcworkspace \
+            -scheme ManojDemoappScheme \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.5'
 
@@ -51,4 +51,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ios-debug-app
-          path: ios/build/ManojDemoap.app # Update this path to reflect where your .app is generated
+          path: ios/build/ManojDemoapp.app # Update this path to reflect where your .app is generated
