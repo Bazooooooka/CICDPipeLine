@@ -1,0 +1,50 @@
+name: Build Android and iOS
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: macos-latest # Use macOS because we need to support iOS builds too.
+    strategy:
+      matrix:
+        platform: [android, ios] # Matrix to run both Android and iOS in parallel.
+
+    steps:
+      - uses: actions/checkout@v4 # Checkout the code from the repository.
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16" # Set the version of Node.js for the build.
+
+      - name: Install dependencies
+        run: |
+          npm install  # Install common dependencies.
+
+      - name: Build ${{ matrix.platform }}
+        run: |
+          if [ "${{ matrix.platform }}" == "android" ]; then
+            # Android build steps
+            chmod +x android/gradlew
+            cd android
+            ./gradlew assembleDebug
+          elif [ "${{ matrix.platform }}" == "ios" ]; then
+            # iOS build steps
+            cd ios
+            pod install  # Install CocoaPods dependencies
+            xcodebuild clean build -scheme YourAppScheme -workspace YourApp.xcworkspace -configuration Debug
+          fi
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.platform }}.apk # For Android
+          path: |
+            if [ "${{ matrix.platform }}" == "android" ]; then
+              android/app/build/outputs/apk/debug/app-debug.apk
+            else
+              ios/build/YourApp.app  # For iOS
+            fi
