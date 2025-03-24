@@ -43,7 +43,7 @@ jobs:
           cd ios
           xcodebuild clean build \
             -workspace ManojDemoapp.xcworkspace \
-            -scheme ManojDemoappScheme \
+            -scheme ManojDemoapp \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.5'
 
