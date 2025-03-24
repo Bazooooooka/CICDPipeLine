@@ -33,7 +33,7 @@ jobs:
       - name: Build iOS App
         run: |
           cd ios
-          xcodebuild clean build -workspace YourApp.xcworkspace -scheme YourApp -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=14.5'
+          xcodebuild clean build -workspace ManojDemoapp.xcworkspace -scheme ManojDemoapp -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=14.5'
 
       # Run tests (if any)
       - name: Run Tests
