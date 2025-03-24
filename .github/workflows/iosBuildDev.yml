@@ -1,50 +1,41 @@
-name: Build Android and iOS
+name: iOS Build and Test
 
 on:
   push:
     branches:
-      - master
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: macos-latest # Use macOS because we need to support iOS builds too.
-    strategy:
-      matrix:
-        platform: [android, ios] # Matrix to run both Android and iOS in parallel.
+    runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4 # Checkout the code from the repository.
+      # Checkout the code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
+      # Set up Node.js (using the latest LTS version)
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "16" # Set the version of Node.js for the build.
+          node-version: "17"
 
-      - name: Install dependencies
+      # Install dependencies
+      - name: Install Dependencies
         run: |
-          npm install  # Install common dependencies.
+          npm install
+          cd ios && pod install && cd ..
 
-      - name: Build ${{ matrix.platform }}
+      # Build the app (ensure the correct scheme and configuration for your project)
+      - name: Build iOS App
         run: |
-          if [ "${{ matrix.platform }}" == "android" ]; then
-            # Android build steps
-            chmod +x android/gradlew
-            cd android
-            ./gradlew assembleDebug
-          elif [ "${{ matrix.platform }}" == "ios" ]; then
-            # iOS build steps
-            cd ios
-            pod install  # Install CocoaPods dependencies
-            xcodebuild clean build -scheme YourAppScheme -workspace YourApp.xcworkspace -configuration Debug
-          fi
+          cd ios
+          xcodebuild clean build -workspace YourApp.xcworkspace -scheme YourApp -configuration Release -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 12,OS=14.5'
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-${{ matrix.platform }}.apk # For Android
-          path: |
-            if [ "${{ matrix.platform }}" == "android" ]; then
-              android/app/build/outputs/apk/debug/app-debug.apk
-            else
-              ios/build/YourApp.app  # For iOS
-            fi
+      # Run tests (if any)
+      - name: Run Tests
+        run: |
+          npm test
