@@ -43,7 +43,7 @@ jobs:
           cd ios
           xcodebuild clean build \
             -workspace ManojDemoap.xcworkspace \
-            -scheme ManojDemoapScheme \  # Make sure your scheme matches this
+            -scheme ManojDemoapScheme \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.5'
 
