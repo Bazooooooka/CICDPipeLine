@@ -16,13 +16,17 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18.20.7" # or the version you are using
+          node-version: "18.20.7" # Specify the Node.js version you are using
 
       - name: Install dependencies
         run: |
           npm install
           cd ios
-          pod install
+          pod install --repo-update
+
+      - name: Clear Derived Data
+        run: |
+          rm -rf ~/Library/Developer/Xcode/DerivedData/*
 
       - name: Decode and install signing certificate
         run: |
@@ -31,12 +35,18 @@ jobs:
           security import certificate.p12 -k build.keychain -P "" -T /usr/bin/codesign
           security list-keychains -s build.keychain
           security set-keychain-settings -lut 7200 build.keychain
+          security unlock-keychain -p "" build.keychain
 
       - name: Decode and install provisioning profile
         run: |
           echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 --decode > profile.mobileprovision
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           mv profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+
+      - name: Verify Simulators
+        run: |
+          echo "Available simulators:"
+          xcrun simctl list
 
       - name: Build the app for iOS
         run: |
@@ -45,7 +55,10 @@ jobs:
             -workspace ManojDemoapp.xcworkspace \
             -scheme ManojDemoapp \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 14,OS=17.5'
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
+            CODE_SIGN_IDENTITY="iPhone Developer" \  # Ensure you set this for development builds
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGN_ENTITLEMENTS="ios/ManojDemoapp/ManojDemoapp.entitlements" # Only if you require entitlements
 
       - name: Upload the build artifact
         uses: actions/upload-artifact@v4
