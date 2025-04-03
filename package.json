@@ -16,7 +16,7 @@
     "@expo/metro-runtime": "~4.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/cli": "latest",
-    "@react-native-firebase/app": "^21.12.0",
+    "@react-native-firebase/app": "^21.12.2",
     "@react-native-firebase/auth": "^21.12.0",
     "@react-native-firebase/firestore": "^21.12.0",
     "@react-native-firebase/messaging": "^21.12.0",
@@ -29,7 +29,6 @@
     "@typescript-eslint/parser": "^7.13.0",
     "add": "^2.0.6",
     "camelize": "^1.0.1",
-    "expo": "^52.0.39",
     "expo-camera": "~16.0.10",
     "expo-constants": "~17.0.3",
     "expo-dev-client": "^5.0.8",
@@ -60,9 +59,9 @@
     "react-native-svg": "15.8.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
+    "readable-stream": "^4.7.0",
     "styled-components": "^6.1.11",
     "typescript": "^5.3.3",
-    "undici": "^5.22.1",
     "uuid": "^11.0.3"
   },
   "devDependencies": {
@@ -72,6 +71,7 @@
     "@types/react-native": "^0.73.0",
     "eslint": "8.x",
     "eslint-plugin-react": "^7.34.2",
+    "expo": "^52.0.40",
     "globals": "^15.4.0",
     "prettier": "^3.4.2"
   },

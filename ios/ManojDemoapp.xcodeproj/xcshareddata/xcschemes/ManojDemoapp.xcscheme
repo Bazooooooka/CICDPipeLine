@@ -60,6 +60,13 @@
             ReferencedContainer = "container:ManojDemoapp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "PATH"
+            value = "/Users/joy/.nvm/versions/node/v18.20.7/bin:$PATH"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
