@@ -56,12 +56,11 @@ jobs:
             -scheme ManojDemoapp \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
-            CODE_SIGN_IDENTITY="iPhone Developer" \  # Ensure you set this for development builds
-            CODE_SIGNING_REQUIRED=YES \
-            CODE_SIGN_ENTITLEMENTS="ios/ManojDemoapp/ManojDemoapp.entitlements" # Only if you require entitlements
+            CODE_SIGN_IDENTITY="iPhone Developer: Dharmendra Patel (8VGJARQ4S4)" \
+            CODE_SIGNING_REQUIRED=YES
 
       - name: Upload the build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-debug-app
-          path: ios/build/ManojDemoapp.app # Update this path to reflect where your .app is generated
+          path: ios/build/ManojDemoapp.app # Ensure this path reflects the generated .app location
