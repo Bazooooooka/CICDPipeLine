@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
+
+env:
+  NODE_VERSION: "18.20.7"
+  IOS_DEPLOYMENT_TARGET: "12.0" # Updated minimum iOS version
+  SCHEME: "ManojDemoapp"
+  WORKSPACE: "ManojDemoapp.xcworkspace"
 
 jobs:
   build:
@@ -18,23 +27,30 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18.20.7"
+          node-version: ${{ env.NODE_VERSION }}
 
-      # 3. Install dependencies
+      # 3. Install npm dependencies and fix deployment targets
       - name: Install dependencies
         run: |
           npm install
           cd ios
+          # Update Podfile with modern iOS version if needed
+          if ! grep -q "platform :ios, '${{ env.IOS_DEPLOYMENT_TARGET }}'" Podfile; then
+            sed -i '' "s/platform :ios, .*/platform :ios, '${{ env.IOS_DEPLOYMENT_TARGET }}'/" Podfile
+          fi
           pod install --repo-update
 
-      # 4. Bundle React Native code (required for release builds)
+          # Clean workspace to reset build phases
+          xcodebuild -workspace ${{ env.WORKSPACE }} -scheme ${{ env.SCHEME }} -configuration Debug clean
+
+      # 4. Bundle React Native code
       - name: Bundle React Native code
         run: |
           npx react-native bundle --entry-file index.js --bundle-output ios/main.jsbundle --platform ios
 
       # 5. Set up signing (for physical devices only)
       - name: Install Apple Certificate and Profile
-        if: github.event_name != 'pull_request' # Only run for non-PR builds
+        if: github.event_name != 'pull_request'
         run: |
           # Decode and install certificate
           echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > certificate.p12
@@ -54,36 +70,38 @@ jobs:
         run: |
           cd ios
           xcodebuild clean build \
-            -workspace ManojDemoapp.xcworkspace \
-            -scheme ManojDemoapp \
+            -workspace ${{ env.WORKSPACE }} \
+            -scheme ${{ env.SCHEME }} \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            IPHONEOS_DEPLOYMENT_TARGET=${{ env.IOS_DEPLOYMENT_TARGET }}
 
       # 7. Build for Physical Device (with signing)
       - name: Build for Physical Device
-        if: github.event_name != 'pull_request' # Only run for non-PR builds
+        if: github.event_name != 'pull_request'
         run: |
           cd ios
           xcodebuild clean build \
-            -workspace ManojDemoapp.xcworkspace \
-            -scheme ManojDemoapp \
+            -workspace ${{ env.WORKSPACE }} \
+            -scheme ${{ env.SCHEME }} \
             -configuration Debug \
             -destination 'generic/platform=iOS' \
             CODE_SIGN_IDENTITY="iPhone Developer: Dharmendra Patel (8VGJARQ4S4)" \
             PROVISIONING_PROFILE_SPECIFIER="ReactPushNotificationTest" \
-            DEVELOPMENT_TEAM="8VGJARQ4S4"
+            DEVELOPMENT_TEAM="8VGJARQ4S4" \
+            IPHONEOS_DEPLOYMENT_TARGET=${{ env.IOS_DEPLOYMENT_TARGET }}
 
-      # 8. Upload artifacts (optional)
+      # 8. Upload artifacts
       - name: Upload Simulator Build
         uses: actions/upload-artifact@v4
         with:
           name: simulator-build
-          path: ios/build/Build/Products/Debug-iphonesimulator/ManojDemoapp.app
+          path: ios/build/Build/Products/Debug-iphonesimulator/${{ env.SCHEME }}.app
 
       - name: Upload Device Build
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: device-build
-          path: ios/build/Build/Products/Debug-iphoneos/ManojDemoapp.app
+          path: ios/build/Build/Products/Debug-iphoneos/${{ env.SCHEME }}.app
