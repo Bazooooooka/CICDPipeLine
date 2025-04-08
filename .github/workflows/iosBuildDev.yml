@@ -1,4 +1,4 @@
-name: iOS Dev Build
+name: iOS Build (Development)
 
 on:
   push:
@@ -10,45 +10,47 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout code
+      # 1. Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18.20.7" # Specify the Node.js version you are using
+          node-version: "18.20.7"
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: |
           npm install
           cd ios
           pod install --repo-update
 
-      - name: Clear Derived Data
+      # 4. Bundle React Native code (required for release builds)
+      - name: Bundle React Native code
         run: |
-          rm -rf ~/Library/Developer/Xcode/DerivedData/*
+          npx react-native bundle --entry-file index.js --bundle-output ios/main.jsbundle --platform ios
 
-      - name: Decode and install signing certificate
+      # 5. Set up signing (for physical devices only)
+      - name: Install Apple Certificate and Profile
+        if: github.event_name != 'pull_request' # Only run for non-PR builds
         run: |
+          # Decode and install certificate
           echo "${{ secrets.APPLE_CERTIFICATE }}" | base64 --decode > certificate.p12
           security create-keychain -p "" build.keychain
           security import certificate.p12 -k build.keychain -P "" -T /usr/bin/codesign
           security list-keychains -s build.keychain
-          security set-keychain-settings -lut 7200 build.keychain
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" build.keychain
           security unlock-keychain -p "" build.keychain
 
-      - name: Decode and install provisioning profile
-        run: |
+          # Decode and install provisioning profile
           echo "${{ secrets.PROVISIONING_PROFILE }}" | base64 --decode > profile.mobileprovision
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          mv profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+          cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$(uuidgen).mobileprovision
 
-      - name: Verify Simulators
-        run: |
-          echo "Available simulators:"
-          xcrun simctl list
-
-      - name: Build the app for iOS
+      # 6. Build for Simulator (no signing)
+      - name: Build for Simulator
         run: |
           cd ios
           xcodebuild clean build \
@@ -56,11 +58,32 @@ jobs:
             -scheme ManojDemoapp \
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
-            CODE_SIGN_IDENTITY="iPhone Developer: Dharmendra Patel (8VGJARQ4S4)" \
-            CODE_SIGNING_REQUIRED=YES
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: Upload the build artifact
+      # 7. Build for Physical Device (with signing)
+      - name: Build for Physical Device
+        if: github.event_name != 'pull_request' # Only run for non-PR builds
+        run: |
+          cd ios
+          xcodebuild clean build \
+            -workspace ManojDemoapp.xcworkspace \
+            -scheme ManojDemoapp \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGN_IDENTITY="iPhone Developer: Dharmendra Patel (8VGJARQ4S4)" \
+            PROVISIONING_PROFILE_SPECIFIER="ReactPushNotificationTest" \
+            DEVELOPMENT_TEAM="8VGJARQ4S4"
+
+      # 8. Upload artifacts (optional)
+      - name: Upload Simulator Build
         uses: actions/upload-artifact@v4
         with:
-          name: ios-debug-app
-          path: ios/build/ManojDemoapp.app # Ensure this path reflects the generated .app location
+          name: simulator-build
+          path: ios/build/Build/Products/Debug-iphonesimulator/ManojDemoapp.app
+
+      - name: Upload Device Build
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: device-build
+          path: ios/build/Build/Products/Debug-iphoneos/ManojDemoapp.app
